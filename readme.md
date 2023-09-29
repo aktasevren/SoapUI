@@ -1,9 +1,40 @@
 ### Calculator-Project-soapui-project.xml
 
-- Test Case 1 
-  * Run Add Service & Set Variable & Validate Response
+- Test Case 1 Calculator Test Suite & Groovy Script Test Suite
+  * Run add service & set variable & validate Response
 
 
+- Test Case 2 TestRunner TestSuite
+  1 - Set suite level properties 
+    - TestRunner TestSuite => Custom Properties
+      int1 - 100 / int2 200
+  2 - Set properties on Add Request
+  ```
+       <tem:intA>${#TestSuite#int1}</tem:intA>
+       <tem:intB>${#TestSuite#int2}</tem:intB>
+  ```
+  3 - Add Assertions
+    3.1 - Contains => <AddResult>300 \
+    3.2 - Valid HTTP Status Codes => 200 \
+    3.3 - Script Assertion 1 => 
+        // check that response time is less than 400 ms \
+        assert messageExchange.timeTaken < 400 \
+    3.4 - Script Assertion 2 => Contains 300
+    ```
+        import com.eviware.soapui.support.XmlHolder
+        def holder = new XmlHolder( messageExchange.responseContentAsXml )
+        def responseXml = holder.getPrettyXml()
+        assert responseXml.contains('300')
+    ```
+    3.5- Script Assertion 32 => Value == 300
+    ```
+        import com.eviware.soapui.support.XmlHolder
+        def holder = new XmlHolder( messageExchange.responseContentAsXml )
+        def responseXml = holder.getPrettyXml()
+        def value = holder.getNodeValue('//ns1:AddResult')
+        assert value.equals('300')
+    ```
+  4 - Property Transfer to Subtract Request
 
 
 
@@ -101,11 +132,9 @@ Sample WSDL : http://webservices.oorsprong.org/websamples.countryinfo/CountryInf
     - ${#Global#PropertyName} – For Global properties, found in File → Preference → - Global properties tab. This property can be used across all projects
     - ${#System#PropertyName} – For System Property, found in Help → System properties
     - ${#Env#PropertyName} – For environment variable\
-    ![Alt text](SoapUI-Notes/image-1.png)
 
 - Property Transfer
   * Test Suite oluştyurduktan sonra CountryISOCode servisi ile bir ülkenin ISO kodunu alıp, Property Transfer ile ISO kodunu CapitalCity servisine aktaracağız.\
-  ![Alt text](SoapUI-Notes/image-3.png)
 
 
 ### SOAP Load Test
@@ -129,16 +158,17 @@ Sample WSDL : http://webservices.oorsprong.org/websamples.countryinfo/CountryInf
 
     Eş zamanlı 20 req , 1 dakika boyunca , toplam 467 sn sürmüş
 
-  ![Alt text](SoapUI-Notes/image-4.png)
 
 ### SOAP UI Groovy Script Örnekler
     - groovy script random değer atama
+    ```
     def test_prameters= testRunner.testCase.testSuite.project.getTestSuiteByName("deneme").getTestCaseByName("TestCase 1")
     test_prameters.setPropertyValue("Ad","Emine")
     def sn_degeri = context.expand('${#TestCase#ad}')
     log.info("ad değeri: " + sn_degeri)
-
+    ```
     - groovy script dönen değeri kontrol etme
+    ```
     def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
     def holder = groovyUtils.getXmlHolder( "Request#Response" )
     holder.namespaces["ns1"] = "http://tckimlik.nvi.gov.tr/WS"
@@ -148,8 +178,9 @@ Sample WSDL : http://webservices.oorsprong.org/websamples.countryinfo/CountryInf
     { log.info "Pass" }
     else
     { log.info "fail"}  
-
+    ```
     - groovy script dönen değeri dosyaya yazma
+    ```
     def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
     def holder = groovyUtils.getXmlHolder( "Request#Response" )
     holder.namespaces["ns1"] = "http://tckimlik.nvi.gov.tr/WS"
@@ -163,4 +194,5 @@ Sample WSDL : http://webservices.oorsprong.org/websamples.countryinfo/CountryInf
     def dts = date.format("yyyy-MM-dd-HH-mm-ss")
     def fileName = "C:\Users\sedat\Desktop\test.txt"
     new File(fileName).write(dts +" Tarihli Servis Response Mesaji : "+addResult)
+    ```
 
